@@ -19,16 +19,17 @@ class ContatosController extends Controller
         return view('contato.index',array('contatos' => $contatos,'busca'=>null));
     }
 
-    public function buscar(Request $request){
-        $contato= Contato::where('nome', 'LIKE' , '%'.$request->input
-        ('busca').'%')->orwhere('email', 'LIKE' , '%'.$request->input
-        ('busca').'%')->orwhere('cidade', 'LIKE' , '%'.$request->input
-        ('busca').'%')->orwhere('estado', 'LIKE' , '%'.$request->input
-        ('busca').'%')->get();
-        return view('contato.index',array('contatos'=> $contatos,
-        'busca'=>request->input('busca')));
-
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function buscar(Request $request) {
+        $contatos = Contato::where('nome','LIKE','%'.$request->input('busca').'%')->orwhere('email','LIKE','%'.$request->input('busca').'%')->get();
+        return view('contato.index',array('contatos' => $contatos,'busca'=>$request->input('busca')));
     }
+
+
     /**
      * Show the form for creating a new resource.
      *
@@ -36,7 +37,7 @@ class ContatosController extends Controller
      */
     public function create()
     {
-       return view('contato.create');
+        return view('contato.create');
     }
 
     /**
@@ -47,16 +48,22 @@ class ContatosController extends Controller
      */
     public function store(Request $request)
     {
+        $this->validate($request,[
+            'nome' => 'required|min:3]',
+            'email' => 'required|e-mail',
+            'telefone' => 'required',
+            'cidade' => 'required',
+            'estado' => 'required',
+        ]);
         $contato = new Contato();
         $contato->nome = $request->input('nome');
         $contato->email = $request->input('email');
         $contato->telefone = $request->input('telefone');
         $contato->cidade = $request->input('cidade');
         $contato->estado = $request->input('estado');
-        if($contato->save()){
-            return redirect('contato');
+        if($contato->save()) {
+            return redirect('contatos');
         }
-
     }
 
     /**
@@ -92,14 +99,23 @@ class ContatosController extends Controller
      */
     public function update(Request $request, $id)
     {
+
+        $this->validate($request,[
+            'nome' => 'required|min:3]',
+            'email' => 'required|e-mail|min:3',
+            'telefone' => 'required',
+            'cidade' => 'required',
+            'estado' => 'required',
+        ]);
+
         $contato = Contato::find($id);
         $contato->nome = $request->input('nome');
         $contato->email = $request->input('email');
         $contato->telefone = $request->input('telefone');
         $contato->cidade = $request->input('cidade');
         $contato->estado = $request->input('estado');
-        if($contato->save()){
-            Session::flash('mensagem',"Contato alterado com sucesso");
+        if($contato->save()) {
+            Session::flash('mensagem','Contato alterado com sucesso');
             return redirect()->back();
         }
     }
@@ -114,7 +130,7 @@ class ContatosController extends Controller
     {
         $contato = Contato::find($id);
         $contato->delete();
-        Session::flash('mensagem','Contato Excluido com Sucesso');
+        Session::flash('mensagem','Contato Excluído com Sucesso');
         return redirect(url('contatos/'));
     }
 }
